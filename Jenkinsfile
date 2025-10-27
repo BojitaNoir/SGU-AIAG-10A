@@ -4,29 +4,33 @@ pipeline {
     agent any
 
     stages {
-        // [MODIFICACIÓN CLAVE]
-        // Intenta detener y eliminar los contenedores específicos por su nombre fijo
-        // ('sgu-database', 'sgu-backend', etc.) para resolver los errores de "Conflict".
+        // [MODIFICACIÓN CLAVE: ORDEN Y LIMPIEZA DE VOLUMENES]
+        // 1. Limpia todos los recursos (contenedores, volúmenes anónimos) del proyecto actual,
+        //    incluso si se ejecutó con un nombre anterior como 'deployment'.
+        stage('Limpiando Recursos del Proyecto...') {
+            steps {
+                bat '''
+                    // down -v --remove-orphans para limpiar recursos del proyecto actual y previos.
+                    docker compose -p sgu-aiag-10a down -v --remove-orphans || exit /b 0
+                    
+                    // Si tienes volúmenes con nombres fijos (ej: sgu-volume), elimínalos aquí
+                    // ya que no se borran con 'down -v'. Cambia 'sgu-volume' por el nombre exacto si es diferente.
+                    echo Intentando eliminar volumen sgu-volume...
+                    docker volume rm -f sgu-volume || exit /b 0
+                '''
+            }
+        }
+        
+        // 2. Limpieza Forzada de Contenedores con Nombre Fijo (soluciona el error "Conflict")
         stage('Pre-limpieza Forzada (Conflicto General)') {
             steps {
                 bat '''
                     echo Intentando eliminar contenedores con nombre fijo conflictivos...
-                    // Eliminar forzadamente contenedores por nombre. El '|| exit /b 0'
-                    // evita que la etapa falle si el contenedor no existe.
+                    // Eliminar forzadamente contenedores por nombre.
                     docker rm -f sgu-database || exit /b 0
                     docker rm -f sgu-backend || exit /b 0
                     docker rm -f sgu-frontend || exit /b 0
                     echo Limpieza de nombres fijos completada.
-                '''
-            }
-        }
-
-        // Parar, eliminar contenedores y volúmenes (-v y --remove-orphans)
-        // Esto limpia los recursos creados por el proyecto actual 'sgu-aiag-10a'.
-        stage('Limpiando Recursos del Proyecto...') {
-            steps {
-                bat '''
-                    docker compose -p sgu-aiag-10a down -v --remove-orphans || exit /b 0
                 '''
             }
         }

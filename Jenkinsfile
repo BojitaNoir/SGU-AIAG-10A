@@ -4,13 +4,24 @@ pipeline {
     agent any
 
     stages {
-        // [MODIFICACIÓN CLAVE]
-        // Parar, eliminar contenedores y volúmenes (flag -v) para garantizar
-        // que no haya conflictos de nombres al crear la DB.
-        stage('Parando y Limpiando Servicios...') {
+        // [NUEVA ETAPA DE LIMPIEZA]
+        // Intenta detener y eliminar cualquier contenedor llamado "sgu-database"
+        // que pudiera haber quedado de ejecuciones manuales o previas, sin importar
+        // el nombre del proyecto. Esto resuelve el error "Conflict".
+        stage('Pre-limpieza Forzada (Conflicto DB)') {
             steps {
                 bat '''
-                    // Los flags -v y --remove-orphans aseguran una limpieza completa de contenedores y volúmenes.
+                    echo Intentando eliminar contenedor sgu-database conflictivo...
+                    docker rm -f sgu-database || exit /b 0
+                '''
+            }
+        }
+
+        // Parar, eliminar contenedores y volúmenes (-v y --remove-orphans)
+        // Esto limpia los recursos creados por el proyecto actual 'sgu-aiag-10a'.
+        stage('Limpiando Recursos del Proyecto...') {
+            steps {
+                bat '''
                     docker compose -p sgu-aiag-10a down -v --remove-orphans || exit /b 0
                 '''
             }
@@ -41,11 +52,9 @@ pipeline {
         }
 
         // Construir y levantar los servicios
-        // Incluir '-p sgu-aiag-10a' para mantener la coherencia.
         stage('Construyendo y Desplegando Servicios...') {
             steps {
                 bat '''
-                    // Docker Compose up con --build para recrear si es necesario y -d para correr en background.
                     docker compose -p sgu-aiag-10a up --build -d
                 '''
             }

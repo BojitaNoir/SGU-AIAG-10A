@@ -4,12 +4,14 @@ pipeline {
     agent any
 
     stages {
-        // Parar los servicios que ya existen o en todo caso hacer caso omiso.
-        // Se usa '-p sgu-aiag-10a' para especificar el proyecto.
-        stage('Parando los servicios...') {
+        // [MODIFICACIÓN CLAVE]
+        // Parar, eliminar contenedores y volúmenes (flag -v) para garantizar
+        // que no haya conflictos de nombres al crear la DB.
+        stage('Parando y Limpiando Servicios...') {
             steps {
                 bat '''
-                    docker compose -p sgu-aiag-10a down || exit /b 0
+                    // Los flags -v y --remove-orphans aseguran una limpieza completa de contenedores y volúmenes.
+                    docker compose -p sgu-aiag-10a down -v --remove-orphans || exit /b 0
                 '''
             }
         }
@@ -39,10 +41,11 @@ pipeline {
         }
 
         // Construir y levantar los servicios
-        // Incluir '-p sgu-aiag-10a' aquí es opcional pero mantiene la coherencia.
-        stage('Construyendo y desplegando servicios...') {
+        // Incluir '-p sgu-aiag-10a' para mantener la coherencia.
+        stage('Construyendo y Desplegando Servicios...') {
             steps {
                 bat '''
+                    // Docker Compose up con --build para recrear si es necesario y -d para correr en background.
                     docker compose -p sgu-aiag-10a up --build -d
                 '''
             }

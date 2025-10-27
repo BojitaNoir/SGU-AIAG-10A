@@ -4,15 +4,19 @@ pipeline {
     agent any
 
     stages {
-        // [NUEVA ETAPA DE LIMPIEZA]
-        // Intenta detener y eliminar cualquier contenedor llamado "sgu-database"
-        // que pudiera haber quedado de ejecuciones manuales o previas, sin importar
-        // el nombre del proyecto. Esto resuelve el error "Conflict".
-        stage('Pre-limpieza Forzada (Conflicto DB)') {
+        // [MODIFICACIÓN CLAVE]
+        // Intenta detener y eliminar los contenedores específicos por su nombre fijo
+        // ('sgu-database', 'sgu-backend', etc.) para resolver los errores de "Conflict".
+        stage('Pre-limpieza Forzada (Conflicto General)') {
             steps {
                 bat '''
-                    echo Intentando eliminar contenedor sgu-database conflictivo...
+                    echo Intentando eliminar contenedores con nombre fijo conflictivos...
+                    // Eliminar forzadamente contenedores por nombre. El '|| exit /b 0'
+                    // evita que la etapa falle si el contenedor no existe.
                     docker rm -f sgu-database || exit /b 0
+                    docker rm -f sgu-backend || exit /b 0
+                    docker rm -f sgu-frontend || exit /b 0
+                    echo Limpieza de nombres fijos completada.
                 '''
             }
         }

@@ -15,7 +15,7 @@ services:
     restart: unless-stopped
 
   backend:
-    image: server:latest
+    image: server:1.0-sgu
     build:
       context: ./server
     environment:
@@ -34,13 +34,12 @@ services:
       - database
 
   frontend:
-    image: client:latest
+    image: client:1.0-sgu
     build:
-      context: ./frontend # Asegurando que el contexto de build sea 'frontend'
+      context: ./frontend
       args:
-        # CAMBIO CRUCIAL: Apunta al host local (tu PC)
+      
         API_HOST: localhost 
-        # Puerto que el host local usa para acceder al backend (8081)
         API_PORT: 8081  
         API_BASE: /api
     container_name: sgu-frontend

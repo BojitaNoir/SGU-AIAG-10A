@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import Swal from 'sweetalert2';
 
 export default function App() {
   const [users, setUsers] = useState([]);
@@ -33,28 +34,109 @@ export default function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.name || !form.email || !form.phone) {
-      alert("Completa todos los campos");
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Campos incompletos',
+        text: 'Por favor completa todos los campos.'
+      });
       return;
     }
     try {
       await axios.post(API_URL, form);
       setForm({ name: "", email: "", phone: "" });
       fetchUsers();
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: 'Usuario agregado',
+        showConfirmButton: false,
+        timer: 1400
+      });
     } catch (err) {
       console.error("Error al crear usuario:", err);
-      alert("Ocurrió un error al crear el usuario");
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo crear el usuario.'
+      });
+    }
+  };
+
+  // Editar usuario
+  const handleEdit = async (user) => {
+    const { value: formValues } = await Swal.fire({
+      title: 'Editar Usuario',
+      html: `
+        <input id="swal-name" class="swal2-input" placeholder="Nombre" value="${user.name}">
+        <input id="swal-email" class="swal2-input" placeholder="Email" value="${user.email}">
+        <input id="swal-phone" class="swal2-input" placeholder="Teléfono" value="${user.phone}">
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: 'Guardar',
+      cancelButtonText: 'Cancelar',
+      preConfirm: () => {
+        return {
+          name: document.getElementById('swal-name').value,
+          email: document.getElementById('swal-email').value,
+          phone: document.getElementById('swal-phone').value
+        }
+      }
+    });
+
+    if (formValues) {
+      try {
+        await axios.put(`${API_URL}/${user.id}`, formValues);
+        fetchUsers();
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: 'Usuario actualizado',
+          showConfirmButton: false,
+          timer: 1400
+        });
+      } catch (err) {
+        console.error("Error al actualizar usuario:", err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo actualizar el usuario.'
+        });
+      }
     }
   };
 
   // Eliminar usuario
   const handleDelete = async (id) => {
-    if (!window.confirm("¿Seguro que quieres eliminar este usuario?")) return;
+    const result = await Swal.fire({
+      title: '¿Eliminar usuario?',
+      text: 'Esta acción no se puede deshacer.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    });
+    if (!result.isConfirmed) return;
     try {
       await axios.delete(`${API_URL}/${id}`);
       fetchUsers();
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: 'Usuario eliminado',
+        showConfirmButton: false,
+        timer: 1200
+      });
     } catch (err) {
       console.error("Error al eliminar usuario:", err);
-      alert("No se pudo eliminar el usuario");
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo eliminar el usuario.'
+      });
     }
   };
 
@@ -128,7 +210,14 @@ export default function App() {
                   </div>
                   <div className="user-bottom">
                     <div className="user-phone">{formatPhone(u.phone)}</div>
-                    <button className="btn danger" onClick={() => handleDelete(u.id)}>Eliminar</button>
+                    <div className="user-actions">
+                      <button className="btn primary small" onClick={() => handleEdit(u)}>
+                        Editar
+                      </button>
+                      <button className="btn danger small" onClick={() => handleDelete(u.id)}>
+                        Eliminar
+                      </button>
+                    </div>
                   </div>
                 </article>
               ))
@@ -143,7 +232,7 @@ export default function App() {
                   <th>Nombre</th>
                   <th>Correo</th>
                   <th>Teléfono</th>
-                  <th>Acción</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -153,8 +242,13 @@ export default function App() {
                     <td>{u.name}</td>
                     <td>{u.email}</td>
                     <td>{u.phone}</td>
-                    <td>
-                      <button className="btn danger small" onClick={() => handleDelete(u.id)}>Eliminar</button>
+                    <td className="actions-cell">
+                      <button className="btn primary small" onClick={() => handleEdit(u)}>
+                        Editar
+                      </button>
+                      <button className="btn danger small" onClick={() => handleDelete(u.id)}>
+                        Eliminar
+                      </button>
                     </td>
                   </tr>
                 ))}

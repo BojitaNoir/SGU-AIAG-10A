@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import Swal from 'sweetalert2';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap-icons/font/bootstrap-icons.css';
+import Swal from "sweetalert2";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
+import "./App.css"; // puedes dejar tu CSS aquí
 
 export default function App() {
   const [users, setUsers] = useState([]);
@@ -12,7 +13,7 @@ export default function App() {
 
   const API_URL = `http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}${import.meta.env.VITE_API_BASE}/users`;
 
-  // Obtener usuarios
+  // --- Obtener usuarios ---
   const fetchUsers = async () => {
     setLoading(true);
     setError("");
@@ -21,7 +22,7 @@ export default function App() {
       setUsers(res.data || []);
     } catch (err) {
       console.error("Error al obtener usuarios:", err);
-      setError("No se pudieron cargar los usuarios");
+      setError("No se pudieron cargar los usuarios.");
     } finally {
       setLoading(false);
     }
@@ -32,14 +33,14 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Crear usuario
+  // --- Crear usuario ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.name || !form.email || !form.phone) {
       await Swal.fire({
-        icon: 'warning',
-        title: 'Campos incompletos',
-        text: 'Por favor completa todos los campos.'
+        icon: "warning",
+        title: "Campos incompletos",
+        text: "Por favor completa todos los campos.",
       });
       return;
     }
@@ -49,26 +50,26 @@ export default function App() {
       fetchUsers();
       Swal.fire({
         toast: true,
-        position: 'top-end',
-        icon: 'success',
-        title: 'Usuario agregado',
+        position: "top-end",
+        icon: "success",
+        title: "Usuario agregado",
         showConfirmButton: false,
-        timer: 1400
+        timer: 1400,
       });
     } catch (err) {
       console.error("Error al crear usuario:", err);
       Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'No se pudo crear el usuario.'
+        icon: "error",
+        title: "Error",
+        text: "No se pudo crear el usuario.",
       });
     }
   };
 
-  // Editar usuario
+  // --- Editar usuario ---
   const handleEdit = async (user) => {
     const { value: formValues } = await Swal.fire({
-      title: 'Editar Usuario',
+      title: "Editar Usuario",
       html: `
         <input id="swal-name" class="swal2-input" placeholder="Nombre" value="${user.name}">
         <input id="swal-email" class="swal2-input" placeholder="Email" value="${user.email}">
@@ -76,15 +77,13 @@ export default function App() {
       `,
       focusConfirm: false,
       showCancelButton: true,
-      confirmButtonText: 'Guardar',
-      cancelButtonText: 'Cancelar',
-      preConfirm: () => {
-        return {
-          name: document.getElementById('swal-name').value,
-          email: document.getElementById('swal-email').value,
-          phone: document.getElementById('swal-phone').value
-        }
-      }
+      confirmButtonText: "Guardar",
+      cancelButtonText: "Cancelar",
+      preConfirm: () => ({
+        name: document.getElementById("swal-name").value,
+        email: document.getElementById("swal-email").value,
+        phone: document.getElementById("swal-phone").value,
+      }),
     });
 
     if (formValues) {
@@ -93,79 +92,82 @@ export default function App() {
         fetchUsers();
         Swal.fire({
           toast: true,
-          position: 'top-end',
-          icon: 'success',
-          title: 'Usuario actualizado',
+          position: "top-end",
+          icon: "success",
+          title: "Usuario actualizado",
           showConfirmButton: false,
-          timer: 1400
+          timer: 1400,
         });
       } catch (err) {
         console.error("Error al actualizar usuario:", err);
         Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudo actualizar el usuario.'
+          icon: "error",
+          title: "Error",
+          text: "No se pudo actualizar el usuario.",
         });
       }
     }
   };
 
-  // Eliminar usuario
+  // --- Eliminar usuario ---
   const handleDelete = async (id) => {
     const result = await Swal.fire({
-      title: '¿Eliminar usuario?',
-      text: 'Esta acción no se puede deshacer.',
-      icon: 'warning',
+      title: "¿Eliminar usuario?",
+      text: "Esta acción no se puede deshacer.",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar'
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
     });
     if (!result.isConfirmed) return;
+
     try {
       await axios.delete(`${API_URL}/${id}`);
       fetchUsers();
       Swal.fire({
         toast: true,
-        position: 'top-end',
-        icon: 'success',
-        title: 'Usuario eliminado',
+        position: "top-end",
+        icon: "success",
+        title: "Usuario eliminado",
         showConfirmButton: false,
-        timer: 1200
+        timer: 1200,
       });
     } catch (err) {
       console.error("Error al eliminar usuario:", err);
       Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'No se pudo eliminar el usuario.'
+        icon: "error",
+        title: "Error",
+        text: "No se pudo eliminar el usuario.",
       });
     }
   };
 
-  const formatPhone = (p) => {
-    if (!p) return "-";
-    return p.toString();
-  };
+  const formatPhone = (p) => (p ? p.toString() : "-");
 
+  // --- Renderizado ---
   return (
     <div className="app-root">
-      <header className="hero">
+      {/* Header */}
+      <header className="hero text-center py-5 bg-primary text-white shadow-sm">
         <div className="hero-inner">
-          <div className="logo">✨ SGU</div>
-          <h1>Gestión de Usuarios</h1>
-          <p className="subtitle">Agrega, consulta y administra tus usuarios con estilo.</p>
+          <h1 className="fw-bold mb-2">
+            <i className="bi bi-person-lines-fill me-2"></i>Gestión de Usuarios
+          </h1>
+          <p className="lead mb-0">Agrega, consulta y administra tus usuarios con estilo ✨</p>
         </div>
       </header>
 
-      <main className="container py-4">
-        <div className="row">
-          <div className="col-lg-4 mb-4">
-            <section className="card form-card h-100">
+      {/* Main */}
+      <main className="container py-5">
+        <div className="row gy-4">
+          {/* Formulario */}
+          <div className="col-lg-4">
+            <section className="card border-0 shadow-lg h-100">
               <div className="card-body">
-                <h2 className="card-title d-flex align-items-center gap-2 mb-4">
-                  <i className="bi bi-person-plus-fill text-primary"></i>
-                  Nuevo usuario
+                <h2 className="card-title h5 d-flex align-items-center gap-2 mb-4 text-primary">
+                  <i className="bi bi-person-plus-fill"></i> Nuevo Usuario
                 </h2>
+
                 <form onSubmit={handleSubmit}>
                   <div className="form-floating mb-3">
                     <input
@@ -200,10 +202,10 @@ export default function App() {
                     />
                     <label htmlFor="phoneInput">Número de teléfono</label>
                   </div>
+
                   <div className="d-grid">
                     <button className="btn btn-primary btn-lg" type="submit">
-                      <i className="bi bi-plus-circle me-2"></i>
-                      Agregar usuario
+                      <i className="bi bi-plus-circle me-2"></i>Agregar usuario
                     </button>
                   </div>
                 </form>
@@ -211,18 +213,17 @@ export default function App() {
             </section>
           </div>
 
+          {/* Lista de usuarios */}
           <div className="col-lg-8">
-            <section className="card list-card">
+            <section className="card border-0 shadow-lg">
               <div className="card-body">
                 <div className="d-flex justify-content-between align-items-center mb-4">
-                  <h2 className="card-title d-flex align-items-center gap-2 mb-0">
-                    <i className="bi bi-people-fill text-primary"></i>
-                    Usuarios
+                  <h2 className="card-title h5 d-flex align-items-center gap-2 text-primary mb-0">
+                    <i className="bi bi-people-fill"></i> Usuarios
                   </h2>
-                  <div className="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
-                    <i className="bi bi-person me-2"></i>
+                  <span className="badge bg-primary-subtle text-primary px-3 py-2">
                     {loading ? "Cargando..." : `${users.length} usuarios`}
-                  </div>
+                  </span>
                 </div>
 
                 {error && (
@@ -255,8 +256,8 @@ export default function App() {
                           <tr key={u.id}>
                             <td>
                               <div className="d-flex align-items-center gap-3">
-                                <div className="avatar-circle">
-                                  {(u.name || "").charAt(0).toUpperCase()}
+                                <div className="avatar-circle bg-primary text-white fw-bold">
+                                  {(u.name || "?").charAt(0).toUpperCase()}
                                 </div>
                                 <div>
                                   <div className="fw-semibold">{u.name}</div>
@@ -278,15 +279,15 @@ export default function App() {
                             </td>
                             <td>
                               <div className="d-flex gap-2 justify-content-end">
-                                <button 
-                                  className="btn btn-light btn-sm" 
+                                <button
+                                  className="btn btn-outline-primary btn-sm"
                                   onClick={() => handleEdit(u)}
                                   title="Editar usuario"
                                 >
                                   <i className="bi bi-pencil"></i>
                                 </button>
-                                <button 
-                                  className="btn btn-danger btn-sm" 
+                                <button
+                                  className="btn btn-outline-danger btn-sm"
                                   onClick={() => handleDelete(u.id)}
                                   title="Eliminar usuario"
                                 >
@@ -306,7 +307,9 @@ export default function App() {
         </div>
       </main>
 
-      <footer className="footer">Hecho con ❤️ — SGU</footer>
+      <footer className="footer text-center py-4 mt-4 bg-light text-muted">
+        Hecho con ❤️ — <strong>SGU</strong>
+      </footer>
     </div>
   );
 }
